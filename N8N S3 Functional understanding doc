@@ -1,0 +1,136 @@
+S3 Workflow – Corporate Documentation
+________________________________________
+Workflow Name:
+S3 WORKFLOW
+Purpose Summary:
+Automates the scheduled retrieval of files from AWS S3 and stores them in a designated local directory for downstream ERP reporting and analytics.
+________________________________________
+Executive Summary
+The  S3 Workflow is an automated data integration process designed to retrieve files from a centralized cloud storage repository (AWS S3) and store them locally for enterprise reporting purposes.
+This workflow delivers operational value by ensuring timely, consistent, and error-free synchronization of reporting data. It eliminates manual intervention, reduces the risk of data inconsistencies, and supports business intelligence platforms such as Power BI with up-to-date datasets.
+________________________________________
+System Overview
+Architecture Description
+The workflow operates within the n8n automation platform and integrates with AWS S3 using secure IAM credentials. It follows a scheduled execution model, periodically fetching files from a specified S3 bucket and writing them to a local file system.
+Data Flow Explanation
+1.	The workflow is triggered based on a predefined schedule.
+2.	It connects to AWS S3 and retrieves a list of all available files in the target bucket.
+3.	Files are processed sequentially using a batching mechanism.
+4.	Each file is downloaded individually.
+5.	Downloaded files are written to a structured local directory.
+6.	The process loops until all files are processed.
+________________________________________
+
+Workflow Components
+1. Schedule Trigger
+•	Type: n8n-nodes-base.scheduleTrigger
+•	Function: Initiates the workflow execution based on time-based rules.
+•	Business Purpose: Ensures automated and periodic data synchronization without manual intervention.
+Configuration Details:
+•	Executes every 2 hours
+•	Additional triggers at:
+o	21:30 (9:30 PM)
+o	23:40 (11:40 PM)
+•	Timezone: Asia/Kolkata
+________________________________________
+2. Get many files
+•	Type: n8n-nodes-base.awsS3
+•	Function: Retrieves metadata for all files stored in the specified S3 bucket.
+•	Business Purpose: Provides a complete inventory of available files for processing and reporting.
+Configuration Details:
+•	Operation: Get All Objects
+•	Bucket Name: XXXXXXX
+•	Return Mode: All files
+________________________________________
+3. Loop Over Items
+•	Type: n8n-nodes-base.splitInBatches
+•	Function: Iterates through the list of files one at a time.
+•	Business Purpose: Enables controlled, sequential processing of files to ensure reliability and scalability.
+
+Key Behavior:
+•	Processes files in batches (default: single item per iteration)
+•	Maintains workflow stability for large datasets
+________________________________________
+4. Download a file
+•	Type: n8n-nodes-base.awsS3
+•	Function: Downloads individual files from the S3 bucket.
+•	Business Purpose: Transfers required data files from cloud storage to the local system for reporting and analysis.
+Configuration Details:
+•	Operation: Download File
+•	Bucket Name: XXXXXX
+•	File Key: Dynamically mapped ({{ $json.Key }})
+________________________________________
+5. Read/Write Files from Disk
+•	Type: n8n-nodes-base.readWriteFile
+•	Function: Writes the downloaded file to a specified local directory.
+•	Business Purpose: Stores files in a structured local repository for use by ERP systems and reporting tools.
+Configuration Details:
+•	Operation: Write File
+•	File Path:
+E:\Daily files\r clone files\
+•	File Naming: Derived dynamically from original file name
+•	Append Mode: Disabled (ensures overwrite or fresh write)
+________________________________________
+
+
+Process Flow
+Workflow Sequence
+Schedule Trigger
+→ Get many files (S3 Bucket Listing)
+→ Loop Over Items (Batch Processing)
+→ Download a file (From S3)
+→ Read/Write Files from Disk (Local Storage)
+→ Loop continues until all files are processed
+________________________________________
+Technical Configuration
+AWS Integration
+•	Service: AWS S3
+•	Bucket: XXXXXX
+•	Authentication: IAM Credentials
+•	Access Type: Programmatic secure access via stored credentials
+Scheduling Logic
+•	Interval-based execution every 2 hours
+•	Additional fixed execution times for end-of-day processing
+•	Timezone aligned with business operations (Asia/Kolkata)
+File Handling Logic
+•	Dynamic file retrieval using object keys
+•	Sequential processing to avoid system overload
+•	Local storage with consistent directory structure
+•	Overwrite mode ensures latest file version availability
+Execution Settings
+•	Execution Order: Version 1
+•	Binary Data Handling: Separate mode
+•	Workflow Status: Active
+________________________________________
+Security & Compliance Notes
+Data Handling
+•	Files are transferred securely from AWS S3
+•	No transformation or exposure of sensitive data within the workflow
+•	Local storage path should be access-controlled
+Access & Credentials
+•	AWS access is managed through IAM credentials
+•	Credentials are stored securely within n8n
+•	Principle of least privilege should be applied to IAM roles
+Compliance Considerations
+•	Ensure alignment with organizational data retention policies
+•	Audit logs from n8n should be maintained for traceability
+•	Local file storage should comply with internal IT governance policies
+________________________________________
+Business Benefits
+Operational Improvements
+•	Fully automated file synchronization
+•	Eliminates manual data extraction tasks
+•	Ensures consistent data availability for reporting
+Efficiency Gains
+•	Reduces processing time and human errors
+•	Enables near real-time data updates
+•	Supports scalable handling of large file volumes
+Reporting Enablement
+•	Provides reliable input for Power BI and ERP dashboards
+•	Enhances decision-making through timely data availability
+________________________________________
+
+Conclusion
+The S3 Workflow is a robust and efficient automation solution that ensures seamless integration between cloud storage and local reporting environments. By automating the retrieval and storage of critical data files, it strengthens data reliability, improves operational efficiency, and supports enterprise-level reporting and analytics.
+This workflow is a key component in maintaining data consistency and enabling informed business decisions across the organization.
+
